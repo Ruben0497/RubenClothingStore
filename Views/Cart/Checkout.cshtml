@@ -1,0 +1,55 @@
+﻿@model List<RubenClothingStore.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h2>Checkout</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">
+        <p>Your cart is empty.</p>
+    </div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cartItem in Model)
+            {
+                <tr>
+                    <td>@cartItem.Item.Name</td>
+                    <td>@cartItem.Item.Size</td>
+                    <td>$@cartItem.Item.Price.ToString("F2")</td>
+                    <td>@cartItem.Quantity</td>
+                    <td>$@((cartItem.Item.Price * cartItem.Quantity).ToString("F2"))</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                <td>
+                    <strong>
+                        $@Model.Sum(item => item.Item.Price * item.Quantity).ToString("F2")
+                    </strong>
+
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <form method="post" asp-action="PlaceOrder">
+        <button type="submit" class="btn btn-success">Place Order</button>
+    </form>
+}

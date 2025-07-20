@@ -1,0 +1,35 @@
+﻿@model List<RubenClothingStore.Models.ClothingItem>
+
+@{
+    ViewData["Title"] = "Welcome";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="text-center mb-4">Welcome to Ruben Clothing Store</h2>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-3 shadow-sm">
+                @if (item.ImageData != null)
+                {
+                    var base64 = Convert.ToBase64String(item.ImageData);
+                    var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
+                    <img src="@imgSrc" class="card-img-top" alt="@item.Name" style="max-height: 250px; object-fit: cover;" />
+                }
+                else
+                {
+                    <img src="~/images/default.png" class="card-img-top" alt="No image" />
+                }
+
+                <div class="card-body">
+                    <h5 class="card-title">@item.Name</h5>
+                    <p class="card-text">Size: @item.Size</p>
+                    <p class="card-text">@item.Description</p>
+                    <p class="card-text"><strong>$@item.Price</strong></p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,92 @@
+﻿@model List<RubenClothingStore.Models.ClothingItem>
+
+@{
+    ViewData["Title"] = "Welcome to Ruben Clothing Store";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .welcome-overlay {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 15px;
+        margin: 2rem auto;
+        max-width: 1100px;
+    }
+
+    .scroll-banner {
+        display: flex;
+        overflow-x: auto;
+        gap: 1rem;
+        padding: 1rem 0;
+        scroll-behavior: smooth;
+    }
+
+        .scroll-banner::-webkit-scrollbar {
+            display: none;
+        }
+
+    .item-card {
+        flex: 0 0 auto;
+        width: 250px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+        .item-card img {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .item-card .card-body {
+            padding: 1rem;
+            text-align: center;
+        }
+</style>
+
+<!-- Background wrapper -->
+<div style="background-image: url('/images/background.jpg');
+     background-size: cover;
+     background-position: center;
+     background-repeat: no-repeat;
+     background-attachment: fixed;
+     min-height: 100vh;">
+
+
+    <div class="welcome-overlay text-center">
+        <h1 class="display-4">Welcome to Ruben Clothing Store</h1>
+        <p>Your one-stop shop for the latest fashion trends!</p>
+        <a href="/Account/Login" class="btn btn-primary me-2">Login</a>
+        <a href="/Account/Register" class="btn btn-secondary">Sign Up</a>
+
+        <hr />
+        <h4 class="mt-4 mb-2">Featured Items</h4>
+
+        <div class="scroll-banner">
+            @foreach (var item in Model)
+            {
+                <div class="item-card">
+                    @if (item.ImageData != null)
+                    {
+                        var base64 = Convert.ToBase64String(item.ImageData);
+                        var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
+                        <img src="@imgSrc" alt="@item.Name" />
+                    }
+                    else
+                    {
+                        <img src="/images/default.png" alt="No image available" />
+                    }
+
+                    <div class="card-body">
+                        <h5>@item.Name</h5>
+                        <p><strong>$@item.Price</strong></p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

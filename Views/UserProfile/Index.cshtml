@@ -1,0 +1,29 @@
+﻿@model RubenClothingStore.Models.UserProfile
+
+@{
+    ViewData["Title"] = "User Profile";
+}
+
+<h2>User Profile</h2>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Full Name</th>
+        <td>@Model.FullName</td>
+    </tr>
+    <tr>
+        <th>Phone Number</th>
+        <td>@Model.PhoneNumber</td>
+    </tr>
+    <tr>
+        <th>Address</th>
+        <td>@Model.Address</td>
+    </tr>
+    <tr>
+        <th>Date of Birth</th>
+        <td>@Model.DateOfBirth?.ToString("dd MMM yyyy")</td>
+    </tr>
+</table>
+
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning mt-2">Edit Profile</a>

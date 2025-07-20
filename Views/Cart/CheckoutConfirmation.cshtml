@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<h2>Thank you for your order!</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <p>There was an issue with your order. Please try again.</p>
+    </div>
+}
