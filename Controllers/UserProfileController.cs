@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using RubenClothingStore.Data;
 using RubenClothingStore.Models;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace RubenClothingStore.Controllers
 {
@@ -15,17 +17,41 @@ namespace RubenClothingStore.Controllers
             _context = context;
         }
 
+        // GET: /UserProfile
         public IActionResult Index()
         {
-            var profile = _context.UserProfiles.FirstOrDefault(p => p.UserId == "demo-user-id");
+            // Retrieve logged-in user's ID from session
+            int userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            if (userId == 0)
+                return RedirectToAction("Login", "Account");
 
+            // Try to get the user's profile
+            var profile = _context.UserProfiles.FirstOrDefault(p => p.UserId == userId);
+
+            // Create profile if it doesn't exist
             if (profile == null)
-                return NotFound("No user profile found.");
+            {
+                profile = new UserProfile
+                {
+                    UserId = userId,
+                    FullName = HttpContext.Session.GetString("FullName")
+                };
+
+                _context.UserProfiles.Add(profile);
+                _context.SaveChanges();
+            }
+
+            // Check completeness for reminder banner
+            bool isComplete = !string.IsNullOrWhiteSpace(profile.PhoneNumber)
+                              && !string.IsNullOrWhiteSpace(profile.Address)
+                              && profile.DateOfBirth != null;
+
+            ViewBag.ProfileIncomplete = !isComplete;
 
             return View(profile);
         }
 
-        // GET: UserProfile/Edit/5
+        // GET: /UserProfile/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -38,13 +64,11 @@ namespace RubenClothingStore.Controllers
             return View(userProfile);
         }
 
-        // POST: UserProfile/Edit/5
+        // POST: /UserProfile/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,FullName,PhoneNumber,Address,DateOfBirth")] UserProfile userProfile)
         {
-            Console.WriteLine("POST: Edit Profile Called");
-
             if (id != userProfile.Id)
                 return NotFound();
 
@@ -54,7 +78,6 @@ namespace RubenClothingStore.Controllers
                 {
                     _context.Update(userProfile);
                     await _context.SaveChangesAsync();
-                    Console.WriteLine("Profile successfully updated");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -71,3 +94,4 @@ namespace RubenClothingStore.Controllers
         }
     }
 }
+

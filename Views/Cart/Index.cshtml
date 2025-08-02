@@ -27,20 +27,20 @@ else
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.Item.Name</td>
-                    <td>@item.Item.Size</td>
-                    <td>$@item.Item.Price.ToString("F2")</td>
+                    <td>@item.Name</td>
+                    <td>@(item.Size ?? "-")</td>
+                    <td>$@item.Price.ToString("F2")</td>
                     <td>@item.Quantity</td>
-                    <td>$@((item.Item.Price * item.Quantity).ToString("F2"))</td>
+                    <td>$@((item.Price * item.Quantity).ToString("F2"))</td>
                     <td>
-                        <a class="btn btn-sm btn-danger" href="/Cart/Remove/@item.Item.Id">Remove</a>
+                        <a class="btn btn-sm btn-danger" href="/Cart/Remove/@item.ClothingItemId">Remove</a>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <h4>Total: $@Model.Sum(i => i.Item.Price * i.Quantity).ToString("F2")</h4>
+    <h4>Total: $@Model.Sum(i => i.Price * i.Quantity).ToString("F2")</h4>
 
     <a class="btn btn-outline-danger" href="/Cart/Clear">Clear Cart</a>
     <a class="btn btn-outline-secondary" href="/Clothing">Continue Shopping</a>

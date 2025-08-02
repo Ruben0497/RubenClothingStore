@@ -2,13 +2,17 @@
 
 @{
     ViewData["Title"] = "Clothing Items";
+    var isAdmin = Context.Session.GetString("IsAdmin") == "true";
 }
 
 <h2>@ViewData["Title"]</h2>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
+@if (isAdmin)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+}
 
 <table class="table table-striped">
     <thead>
@@ -29,7 +33,8 @@
                     {
                         var base64 = Convert.ToBase64String(item.ImageData);
                         var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
-                        <img src="@imgSrc" alt="@item.Name" style="max-width: 100px;" />
+                        <img src="@imgSrc" alt="@item.Name"
+                             class="@(isAdmin ? "img-admin" : "img-user")" />
                     }
                     else
                     {
@@ -41,13 +46,22 @@
                 <td>$@item.Price.ToString("F2")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
+
                     <form asp-action="AddToCart" method="post" style="display:inline;">
                         <input type="hidden" name="id" value="@item.Id" />
                         <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
                     </form>
-                    <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id" class="btn btn-success btn-sm">Buy</a>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+
+                    <form asp-controller="Cart" asp-action="BuyNow" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" class="btn btn-success btn-sm">Buy</button>
+                    </form>
+
+                    @if (isAdmin)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+                    }
                 </td>
             </tr>
         }

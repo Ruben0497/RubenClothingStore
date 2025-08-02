@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RubenClothingStore.Models
 {
@@ -7,7 +9,8 @@ namespace RubenClothingStore.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; } 
+        [ForeignKey("User")]
+        public int UserId { get; set; } 
 
         [Display(Name = "Full Name")]
         public string? FullName { get; set; }
@@ -21,5 +24,7 @@ namespace RubenClothingStore.Models
         [Display(Name = "Date of Birth")]
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
+
+        public User? User { get; set; }
     }
 }

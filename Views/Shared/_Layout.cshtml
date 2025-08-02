@@ -1,23 +1,52 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var userId = Context.Session.GetInt32("UserId");
+    var fullName = Context.Session.GetString("FullName");
+    var isAdmin = Context.Session.GetString("IsAdmin") == "true";
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - RubenClothingStore</title>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RubenClothingStore.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            margin-bottom: 0 !important;
+            padding-bottom: 1rem;
+        }
+
+        footer a i {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        footer a:hover i {
+            transform: scale(1.2);
+            opacity: 0.85;
+        }
+    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <span class="navbar-brand">RubenClothingStore</span>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
@@ -26,45 +55,96 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Clothing" asp-action="Index">Clothes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="UserProfile" asp-action="Index">Profile</a>
+                            <a class="nav-link fw-bold" asp-controller="Clothing" asp-action="Index">Clothes</a>
                         </li>
 
+                        @if (userId != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="UserProfile" asp-action="Index">Profile</a>
+                            </li>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold" asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
+                            </li>
+                        }
                     </ul>
 
-                    <!-- Right-aligned links -->
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Cart" asp-action="Index">Cart</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Cart" asp-action="Checkout">Checkout</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Register">Sign Up</a>
-                        </li>
+                        @if (userId != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Order" asp-action="History">My Orders</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Cart" asp-action="Index">Cart</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Cart" asp-action="Checkout">Checkout</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" asp-controller="Account" asp-action="Register">Sign Up</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+
+    <div class="container flex-grow-1">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - RubenClothingStore - <a asp-area="" asp-controller="Home" asp-action="Privacy"> </a>
+    <!-- Sticky Dark-Themed Footer with Colorful Social Icons -->
+    <footer class="border-top bg-dark text-light py-3 mt-auto" style="margin-bottom: 0;">
+        <div class="container text-center">
+
+            <!-- Social Media Icons -->
+            <div class="mb-3 d-flex justify-content-center gap-4 fs-4">
+                <a href="https://www.instagram.com" target="_blank" title="Instagram" style="color: #E1306C;">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://www.facebook.com" target="_blank" title="Facebook" style="color: #1877F2;">
+                    <i class="fab fa-facebook"></i>
+                </a>
+                <a href="https://www.twitter.com" target="_blank" title="Twitter" style="color: #1DA1F2;">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://github.com/Ruben0497/RubenClothingStore.git" target="_blank" title="GitHub" style="color: #FFFFFF;">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+
+            <!-- Footer Links -->
+            <ul class="list-inline mb-2">
+                <li class="list-inline-item">
+                    <a class="text-decoration-none text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </li>
+                <li class="list-inline-item text-light">|</li>
+                <li class="list-inline-item">
+                    <a class="text-decoration-none text-light" asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                </li>
+            </ul>
+
+            <p class="small mb-0 text-light">&copy; 2025 RubenClothingStore. All rights reserved.</p>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

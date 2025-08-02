@@ -1,26 +1,64 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    padding: 0;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .navbar .nav-link {
     font-weight: bold;
+}
+
+.hero-section h1 {
+    font-size: 4rem;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .carousel-inner .d-flex {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card {
+        width: 90% !important;
+        margin: 1rem 0;
+    }
+}
+
+/* Admin: small image thumbnails */
+.img-admin {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* User: larger product display */
+.img-user {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
 }

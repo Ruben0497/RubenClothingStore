@@ -12,7 +12,7 @@ using RubenClothingStore.Data;
 namespace RubenClothingStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250719092302_InitialCreate")]
+    [Migration("20250721033005_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -75,13 +75,32 @@ namespace RubenClothingStore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetTokenExpiry")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "ruben@example.com",
+                            FullName = "Ruben Loganathan",
+                            IsAdmin = false,
+                            Password = "password123"
+                        });
                 });
 
             modelBuilder.Entity("RubenClothingStore.Models.UserProfile", b =>
@@ -104,11 +123,12 @@ namespace RubenClothingStore.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserProfiles");
 
@@ -120,8 +140,19 @@ namespace RubenClothingStore.Migrations
                             DateOfBirth = new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             FullName = "Ruben Loganathan",
                             PhoneNumber = "98765432",
-                            UserId = "demo-user-id"
+                            UserId = 1
                         });
+                });
+
+            modelBuilder.Entity("RubenClothingStore.Models.UserProfile", b =>
+                {
+                    b.HasOne("RubenClothingStore.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

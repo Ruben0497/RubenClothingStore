@@ -2,28 +2,38 @@
 
 @{
     ViewData["Title"] = "User Profile";
+    bool isIncomplete = ViewBag.ProfileIncomplete ?? false;
 }
 
-<h2>User Profile</h2>
+<h2 class="mb-4">User Profile</h2>
 
-<table class="table table-bordered">
+@if (isIncomplete)
+{
+    <div class="alert alert-warning">
+        Your profile is incomplete. Please update your phone number, address, or date of birth.
+    </div>
+}
+
+<table class="table table-bordered w-75 mx-auto">
     <tr>
         <th>Full Name</th>
         <td>@Model.FullName</td>
     </tr>
     <tr>
         <th>Phone Number</th>
-        <td>@Model.PhoneNumber</td>
+        <td>@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not Provided" : Model.PhoneNumber)</td>
     </tr>
     <tr>
         <th>Address</th>
-        <td>@Model.Address</td>
+        <td>@(string.IsNullOrWhiteSpace(Model.Address) ? "Not Provided" : Model.Address)</td>
     </tr>
     <tr>
         <th>Date of Birth</th>
-        <td>@Model.DateOfBirth?.ToString("dd MMM yyyy")</td>
+        <td>@(Model.DateOfBirth.HasValue? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "Not Provided")</td>
     </tr>
 </table>
 
-
-<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning mt-2">Edit Profile</a>
+<div class="text-center mt-3">
+    <p class="text-muted">Profile ID: @Model.Id</p>
+    <a asp-controller="UserProfile" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit Profile</a>
+</div>

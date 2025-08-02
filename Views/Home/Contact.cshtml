@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<h2>Contact Us</h2>
+
+<p>If you have any questions, feedback, or need support, feel free to contact us using the form below or through the details provided.</p>
+
+<form method="post" asp-action="Contact">
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="Name" name="Name" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="Email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="Email" name="Email" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="Message" class="form-label">Message</label>
+        <textarea class="form-control" id="Message" name="Message" rows="5" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Send Message</button>
+</form>
+
+<hr />
+
+<h4>Our Contact Details</h4>
+<p>Email: support@rubenclothingstore.com</p>
+<p>Phone: +65 9876 5432</p>
+<p>Address: 123 Fashion Street, Singapore 567890</p>

@@ -1,0 +1,47 @@
+﻿@model List<RubenClothingStore.Models.Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<h2>My Past Orders</h2>
+
+@if (!Model.Any())
+{
+    <p>You have no past orders.</p>
+}
+else
+{
+    foreach (var order in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                Order #@order.Id - @order.OrderDate.ToString("dd MMM yyyy hh:mm tt")
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in order.Items)
+                        {
+                            <tr>
+                                <td>@item.ClothingItem?.Name</td>
+                                <td>@item.Quantity</td>
+                                <td>$@item.Price.ToString("F2")</td>
+                                <td>$@((item.Price * item.Quantity).ToString("F2"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <strong>Total: $@((order.Items.Sum(i => i.Price * i.Quantity)).ToString("F2"))</strong>
+            </div>
+        </div>
+    }
+}

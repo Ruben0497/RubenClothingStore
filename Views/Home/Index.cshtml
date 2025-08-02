@@ -7,29 +7,58 @@
 
 <h2 class="text-center mb-4">Welcome to Ruben Clothing Store</h2>
 
-<div class="row">
-    @foreach (var item in Model)
-    {
-        <div class="col-md-4">
-            <div class="card mb-3 shadow-sm">
-                @if (item.ImageData != null)
-                {
-                    var base64 = Convert.ToBase64String(item.ImageData);
-                    var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
-                    <img src="@imgSrc" class="card-img-top" alt="@item.Name" style="max-height: 250px; object-fit: cover;" />
-                }
-                else
-                {
-                    <img src="~/images/default.png" class="card-img-top" alt="No image" />
-                }
-
-                <div class="card-body">
-                    <h5 class="card-title">@item.Name</h5>
-                    <p class="card-text">Size: @item.Size</p>
-                    <p class="card-text">@item.Description</p>
-                    <p class="card-text"><strong>$@item.Price</strong></p>
-                </div>
-            </div>
+<div class="hero-section text-white text-center" style="background: url('/images/bg.jpg') no-repeat center center; background-size: cover; height: 90vh;">
+    <div class="d-flex h-100 align-items-center justify-content-center flex-column">
+        <h1 class="display-3 fw-bold">Shop With Us</h1>
+        <p class="lead">IT'S NOT ABOUT THE BRAND, IT'S ABOUT STYLE</p>
+        <div>
+            <a class="btn btn-outline-light btn-lg me-3" asp-controller="Clothing" asp-action="Index">SHOP NOW</a>
+            <a class="btn btn-outline-light btn-lg me-3" asp-controller="Account" asp-action="Register">SIGN UP NOW</a>
         </div>
-    }
+    </div>
 </div>
+
+<!-- Carousel Product Section -->
+<section class="py-5 bg-light text-center">
+    <h2 class="mb-4">Our Products</h2>
+
+    <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            @{
+                var chunks = Model.Chunk(3).ToList(); // Split into groups of 3
+                for (int i = 0; i < chunks.Count; i++)
+                {
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="d-flex justify-content-center gap-4 flex-wrap">
+                            @foreach (var item in chunks[i])
+                            {
+                                <div class="card" style="width: 18rem;">
+                                    @if (item.ImageData != null)
+                                    {
+                                        var base64 = Convert.ToBase64String(item.ImageData);
+                                        var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
+                                        <img class="card-img-top" src="@imgSrc" alt="@item.Name" style="height: 200px; object-fit: cover;" />
+                                    }
+                                    <div class="card-body">
+                                        <h5 class="card-title">@item.Name</h5>
+                                        <p class="card-text">@item.Description</p>
+                                        <p class="card-text"><strong>$@item.Price</strong></p>
+                                        <a href="/Clothing/Details/@item.Id" class="btn btn-primary">Buy Now</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+</section>

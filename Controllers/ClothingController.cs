@@ -8,7 +8,7 @@ using RubenClothingStore.Data;
 using RubenClothingStore.Models;
 using Microsoft.AspNetCore.Http;
 using RubenClothingStore.Helpers;
-
+using System.Collections.Generic;
 
 namespace RubenClothingStore.Controllers
 {
@@ -50,16 +50,22 @@ namespace RubenClothingStore.Controllers
         // GET: Clothing/Create
         public IActionResult Create()
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             return View();
         }
 
-        // POST: Clothing/Create (store image in DB)
+        // POST: Clothing/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Id,Name,Price,Size,Description")] ClothingItem clothingItem,
             IFormFile? imageFile)
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             if (ModelState.IsValid)
             {
                 if (imageFile != null && imageFile.Length > 0)
@@ -74,7 +80,6 @@ namespace RubenClothingStore.Controllers
 
                 _context.Add(clothingItem);
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
 
@@ -84,6 +89,9 @@ namespace RubenClothingStore.Controllers
         // GET: Clothing/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             if (id == null)
                 return NotFound();
 
@@ -94,13 +102,16 @@ namespace RubenClothingStore.Controllers
             return View(clothingItem);
         }
 
-        // POST: Clothing/Edit/5 (update image in DB)
+        // POST: Clothing/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
             [Bind("Id,Name,Price,Size,Description")] ClothingItem clothingItem,
             IFormFile? imageFile)
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             if (id != clothingItem.Id)
                 return NotFound();
 
@@ -147,6 +158,9 @@ namespace RubenClothingStore.Controllers
         // GET: Clothing/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             if (id == null)
                 return NotFound();
 
@@ -162,6 +176,9 @@ namespace RubenClothingStore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (HttpContext.Session.GetString("IsAdmin") != "true")
+                return Unauthorized();
+
             var clothingItem = await _context.ClothingItems.FindAsync(id);
             if (clothingItem != null)
                 _context.ClothingItems.Remove(clothingItem);
@@ -175,6 +192,7 @@ namespace RubenClothingStore.Controllers
             return _context.ClothingItems.Any(e => e.Id == id);
         }
 
+        // POST: Clothing/AddToCart
         [HttpPost]
         public IActionResult AddToCart(int id)
         {
@@ -183,21 +201,26 @@ namespace RubenClothingStore.Controllers
 
             var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
 
-            var existingItem = cart.FirstOrDefault(ci => ci.Item.Id == id);
+            var existingItem = cart.FirstOrDefault(ci => ci.ClothingItemId == id);
             if (existingItem != null)
             {
                 existingItem.Quantity++;
             }
             else
             {
-                cart.Add(new CartItem { Item = item, Quantity = 1 });
+                cart.Add(new CartItem
+                {
+                    ClothingItemId = item.Id,
+                    Name = item.Name,
+                    Size = item.Size,
+                    Price = item.Price,
+                    Quantity = 1
+                });
             }
 
             HttpContext.Session.SetObjectAsJson("Cart", cart);
 
             return RedirectToAction("Index");
         }
-
-
     }
 }
