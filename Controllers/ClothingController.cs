@@ -9,6 +9,7 @@ using RubenClothingStore.Models;
 using Microsoft.AspNetCore.Http;
 using RubenClothingStore.Helpers;
 using System.Collections.Generic;
+using RubenClothingStore.ViewModels;
 
 namespace RubenClothingStore.Controllers
 {
@@ -22,9 +23,81 @@ namespace RubenClothingStore.Controllers
         }
 
         // GET: Clothing
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? search,
+            string? size,
+            int? minPrice,
+            int? maxPrice,
+            string? sortOrder,
+            int page = 1,
+            int pageSize = 12)
         {
-            return View(await _context.ClothingItems.ToListAsync());
+            if (page < 1) page = 1;
+            if (pageSize <= 0 || pageSize > 100) pageSize = 12;
+
+            var query = _context.ClothingItems.AsNoTracking().AsQueryable();
+
+            // SEARCH
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim();
+                query = query.Where(x =>
+                    x.Name.Contains(s) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(s)));
+            }
+
+            // FILTERS
+            if (!string.IsNullOrWhiteSpace(size))
+                query = query.Where(x => x.Size == size);
+
+            if (minPrice.HasValue)
+                query = query.Where(x => x.Price >= minPrice.Value);
+
+            if (maxPrice.HasValue)
+                query = query.Where(x => x.Price <= maxPrice.Value);
+
+            // SORT
+            query = sortOrder switch
+            {
+                "price_asc" => query.OrderBy(x => x.Price),
+                "price_desc" => query.OrderByDescending(x => x.Price),
+                "name_desc" => query.OrderByDescending(x => x.Name),
+                "newest" => query.OrderByDescending(x => x.Id), 
+                _ => query.OrderBy(x => x.Name)          
+            };
+
+            // TOTAL for pagination
+            var totalItems = await query.CountAsync();
+
+            // PAGINATION
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // DISTINCT SIZES for dropdown
+            var sizes = await _context.ClothingItems
+                .Where(x => !string.IsNullOrEmpty(x.Size))
+                .Select(x => x.Size!)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToListAsync();
+
+            var vm = new ProductListViewModel
+            {
+                Items = items,
+                Search = search,
+                Size = size,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                SortOrder = sortOrder,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                Sizes = sizes
+            };
+
+            return View(vm);
         }
 
         // GET: Clothing/Welcome

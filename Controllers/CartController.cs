@@ -18,18 +18,72 @@ namespace RubenClothingStore.Controllers
             _context = context;
         }
 
-        // Show Cart Items
+        // Helpers 
+        private List<CartItem> GetCart()
+            => HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+
+        private void SaveCart(List<CartItem> cart)
+            => HttpContext.Session.SetObjectAsJson("Cart", cart);
+
+        // Cart Index 
         public IActionResult Index()
         {
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var cart = GetCart();
             return View(cart);
         }
 
-        // Remove or reduce quantity
-        public IActionResult Remove(int id)
+        // Quantity Updates
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateQuantity(int id, string? size, int quantity)
         {
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
-            var item = cart.FirstOrDefault(c => c.ClothingItemId == id);
+            if (quantity < 1) quantity = 1;
+
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(c => c.ClothingItemId == id && c.Size == size);
+            if (item != null)
+            {
+                item.Quantity = quantity;
+                SaveCart(cart);
+                TempData["CartMessage"] = "Cart updated.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Increment(int id, string? size)
+        {
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(c => c.ClothingItemId == id && c.Size == size);
+            if (item != null)
+            {
+                item.Quantity++;
+                SaveCart(cart);
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Decrement(int id, string? size)
+        {
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(c => c.ClothingItemId == id && c.Size == size);
+            if (item != null)
+            {
+                item.Quantity = Math.Max(1, item.Quantity - 1);
+                SaveCart(cart);
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Remove / Clear
+        public IActionResult Remove(int id, string? size)
+        {
+            var cart = GetCart();
+            var item = cart.FirstOrDefault(c => c.ClothingItemId == id && c.Size == size);
 
             if (item != null)
             {
@@ -38,42 +92,43 @@ namespace RubenClothingStore.Controllers
                 else
                     cart.Remove(item);
 
-                HttpContext.Session.SetObjectAsJson("Cart", cart);
+                SaveCart(cart);
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         // Clear the entire cart
         public IActionResult Clear()
         {
             HttpContext.Session.Remove("Cart");
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
-        // Checkout Page
+        // Checkout 
         public IActionResult Checkout()
         {
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var cart = GetCart();
             return View(cart);
         }
 
-        // Order Confirmation Page (after placing order)
         public IActionResult CheckoutConfirmation()
         {
             return View();
         }
 
-        // Buy Now / Add to Cart
+        // Add to Cart / Buy Now 
         [HttpPost]
-        public IActionResult BuyNow(int id)
+        [ValidateAntiForgeryToken]
+        public IActionResult BuyNow(int id, string? size)
         {
-            var item = _context.ClothingItems.FirstOrDefault(i => i.Id == id);
-            if (item == null) return NotFound();
+            var product = _context.ClothingItems.FirstOrDefault(i => i.Id == id);
+            if (product == null) return NotFound();
 
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var cart = GetCart();
 
-            var existingItem = cart.FirstOrDefault(ci => ci.ClothingItemId == id);
+            // Merge by (id, size)
+            var existingItem = cart.FirstOrDefault(ci => ci.ClothingItemId == id && ci.Size == size);
             if (existingItem != null)
             {
                 existingItem.Quantity++;
@@ -82,32 +137,34 @@ namespace RubenClothingStore.Controllers
             {
                 cart.Add(new CartItem
                 {
-                    ClothingItemId = item.Id,
-                    Name = item.Name,
-                    Price = item.Price,
-                    Quantity = 1
+                    ClothingItemId = product.Id,
+                    Name = product.Name,
+                    Price = product.Price,
+                    Quantity = 1,
+                    Size = size
                 });
             }
 
-            HttpContext.Session.SetObjectAsJson("Cart", cart);
+            SaveCart(cart);
 
-            return RedirectToAction("Checkout");
+            // Go straight to checkout
+            return RedirectToAction(nameof(Checkout));
         }
 
-        // Place Order and Save to DB
+        // Place Order 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult PlaceOrder()
         {
-            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            var cart = GetCart();
             var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
 
             if (!cart.Any() || userId == 0)
             {
                 TempData["Error"] = "Your cart is empty or user not found.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            // Create Order
             var order = new Order
             {
                 UserId = userId,
@@ -116,13 +173,14 @@ namespace RubenClothingStore.Controllers
                 Items = new List<OrderItem>()
             };
 
-            foreach (var item in cart)
+            foreach (var i in cart)
             {
                 order.Items.Add(new OrderItem
                 {
-                    ClothingItemId = item.ClothingItemId,
-                    Quantity = item.Quantity,
-                    Price = item.Price
+                    ClothingItemId = i.ClothingItemId,
+                    Quantity = i.Quantity,
+                    Price = i.Price,
+                   
                 });
             }
 
@@ -131,7 +189,7 @@ namespace RubenClothingStore.Controllers
 
             HttpContext.Session.Remove("Cart");
             TempData["Success"] = "Your order has been placed successfully!";
-            return RedirectToAction("CheckoutConfirmation");
+            return RedirectToAction(nameof(CheckoutConfirmation));
         }
     }
 }

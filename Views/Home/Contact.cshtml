@@ -4,6 +4,13 @@
 
 <h2>Contact Us</h2>
 
+@if (ViewBag.SuccessMessage != null)
+{
+    <div class="alert alert-success" role="alert">
+        @ViewBag.SuccessMessage
+    </div>
+}
+
 <p>If you have any questions, feedback, or need support, feel free to contact us using the form below or through the details provided.</p>
 
 <form method="post" asp-action="Contact">

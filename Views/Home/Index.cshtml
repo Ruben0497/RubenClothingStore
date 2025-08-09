@@ -25,7 +25,7 @@
     <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
             @{
-                var chunks = Model.Chunk(3).ToList(); // Split into groups of 3
+                var chunks = Model.Chunk(3).ToList(); // Split the product list into chunks of 3
                 for (int i = 0; i < chunks.Count; i++)
                 {
                     <div class="carousel-item @(i == 0 ? "active" : "")">
@@ -42,8 +42,8 @@
                                     <div class="card-body">
                                         <h5 class="card-title">@item.Name</h5>
                                         <p class="card-text">@item.Description</p>
-                                        <p class="card-text"><strong>$@item.Price</strong></p>
-                                        <a href="/Clothing/Details/@item.Id" class="btn btn-primary">Buy Now</a>
+                                        <p class="card-text"><strong>$@item.Price.ToString("F2")</strong></p>
+                                        <a asp-controller="Clothing" asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary">Details</a>
                                     </div>
                                 </div>
                             }
@@ -53,12 +53,14 @@
             }
         </div>
 
-        <!-- Controls -->
+        <!-- Carousel Controls -->
         <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
         </button>
     </div>
 </section>

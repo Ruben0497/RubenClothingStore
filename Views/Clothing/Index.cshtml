@@ -1,8 +1,9 @@
-﻿@model IEnumerable<RubenClothingStore.Models.ClothingItem>
-
+﻿@model RubenClothingStore.ViewModels.ProductListViewModel
 @{
     ViewData["Title"] = "Clothing Items";
     var isAdmin = Context.Session.GetString("IsAdmin") == "true";
+    var userId = Context.Session.GetInt32("UserId");
+    var isLoggedIn = userId.HasValue && userId.Value > 0;
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -14,18 +15,64 @@
     </p>
 }
 
-<table class="table table-striped">
+<!-- Filters -->
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Search</label>
+        <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Name or description..." />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Size</label>
+        <select name="size" class="form-select">
+            <option value="">All</option>
+            @foreach (var s in Model.Sizes)
+            {
+                <option value="@s" selected="@(Model.Size == s ? "selected" : null)">@s</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Min Price</label>
+        <input type="number" name="minPrice" value="@(Model.MinPrice?.ToString())" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Max Price</label>
+        <input type="number" name="maxPrice" value="@(Model.MaxPrice?.ToString())" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Sort</label>
+        <select name="sortOrder" class="form-select">
+            <option value="" selected="@(string.IsNullOrEmpty(Model.SortOrder) ? "selected" : null)">Name (A→Z)</option>
+            <option value="name_desc" selected="@(Model.SortOrder == "name_desc" ? "selected" : null)">Name (Z→A)</option>
+            <option value="price_asc" selected="@(Model.SortOrder == "price_asc" ? "selected" : null)">Price (Low→High)</option>
+            <option value="price_desc" selected="@(Model.SortOrder == "price_desc" ? "selected" : null)">Price (High→Low)</option>
+            <option value="newest" selected="@(Model.SortOrder == "newest" ? "selected" : null)">Newest</option>
+        </select>
+    </div>
+
+    <div class="col-12 mt-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a class="btn btn-outline-secondary ms-2" href="@Url.Action("Index", "Clothing")">Reset</a>
+    </div>
+</form>
+
+<!-- Table of items -->
+<table class="table table-striped align-middle" style="table-layout: fixed; width: 100%;">
     <thead>
         <tr>
-            <th>Image</th>
+            <th style="width: 160px;">Image</th>
             <th>Name</th>
             <th>Size</th>
             <th>Price</th>
-            <th></th>
+            <th style="width: 280px;"></th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>
@@ -33,8 +80,7 @@
                     {
                         var base64 = Convert.ToBase64String(item.ImageData);
                         var imgSrc = $"data:{item.ImageMimeType};base64,{base64}";
-                        <img src="@imgSrc" alt="@item.Name"
-                             class="@(isAdmin ? "img-admin" : "img-user")" />
+                        <img src="@imgSrc" alt="@item.Name" style="width:150px; height:auto; border-radius: 6px;" />
                     }
                     else
                     {
@@ -45,25 +91,68 @@
                 <td>@item.Size</td>
                 <td>$@item.Price.ToString("F2")</td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm me-1 mb-1">Details</a>
 
-                    <form asp-action="AddToCart" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
-                    </form>
+                    @if (isLoggedIn)
+                    {
+                        <form asp-action="AddToCart" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-success btn-sm me-1 mb-1">Add to Cart</button>
+                        </form>
 
-                    <form asp-controller="Cart" asp-action="BuyNow" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Buy</button>
-                    </form>
+                        <form asp-controller="Cart" asp-action="BuyNow" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-success btn-sm mb-1">Buy</button>
+                        </form>
+                    }
 
                     @if (isAdmin)
                     {
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm me-1 mb-1">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm mb-1">Delete</a>
                     }
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @{
+                int current = Model.Page;
+                int total = Model.TotalPages;
+                Func<int, string> pageLink = p => Url.Action("Index", new
+                {
+                    search = Model.Search,
+                    size = Model.Size,
+                    minPrice = Model.MinPrice,
+                    maxPrice = Model.MaxPrice,
+                    sortOrder = Model.SortOrder,
+                    page = p,
+                    pageSize = Model.PageSize
+                });
+            }
+
+            <li class="page-item @(current == 1 ? "disabled" : "")">
+                <a class="page-link" href="@(current == 1 ? "#" : pageLink(current - 1))">Previous</a>
+            </li>
+
+            @for (int p = 1; p <= total; p++)
+            {
+                <li class="page-item @(p == current ? "active" : "")">
+                    <a class="page-link" href="@pageLink(p)">@p</a>
+                </li>
+            }
+
+            <li class="page-item @(current == total ? "disabled" : "")">
+                <a class="page-link" href="@(current == total ? "#" : pageLink(current + 1))">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

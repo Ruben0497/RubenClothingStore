@@ -13,6 +13,7 @@ namespace RubenClothingStore.Controllers
             _context = context;
         }
 
+        // Home page showing product list
         public async Task<IActionResult> Index()
         {
             var products = await _context.ClothingItems.ToListAsync();
@@ -29,17 +30,25 @@ namespace RubenClothingStore.Controllers
         [HttpGet]
         public IActionResult Contact()
         {
+            // Pass the TempData message (if any) to ViewBag for display
+            if (TempData.ContainsKey("Success"))
+            {
+                ViewBag.SuccessMessage = TempData["Success"];
+            }
             return View();
         }
 
-        //  Contact Page (POST)
+        // Contact Page (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Contact(string Name, string Email, string Message)
         {
-            // TODO:Save to DB or send email
+            // TODO: Save to DB or send email logic here
 
+            // Set success message to TempData
             TempData["Success"] = "Thank you for reaching out! We will get back to you soon.";
+
+            // Redirect back to GET action to avoid repost on refresh
             return RedirectToAction("Contact");
         }
     }
